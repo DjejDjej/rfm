@@ -393,16 +393,8 @@ static RFM_defaultPixbufs *load_default_pixbufs(void)
    
    /* Tool bar icons */
    defaultPixbufs->up=gtk_icon_theme_load_icon(icon_theme, "go-up", RFM_TOOL_SIZE, 0, NULL);
-   defaultPixbufs->home=gtk_icon_theme_load_icon(icon_theme, "go-home", RFM_TOOL_SIZE, 0, NULL);
-   defaultPixbufs->stop=gtk_icon_theme_load_icon(icon_theme, "process-stop", RFM_TOOL_SIZE, 0, NULL);
-   defaultPixbufs->refresh=gtk_icon_theme_load_icon(icon_theme, "view-refresh", RFM_TOOL_SIZE, 0, NULL);
-   defaultPixbufs->info=gtk_icon_theme_load_icon(icon_theme, "dialog-information", RFM_TOOL_SIZE, 0, NULL);
 
    if (defaultPixbufs->up==NULL) defaultPixbufs->up=gdk_pixbuf_new_from_xpm_data(RFM_icon_up);
-   if (defaultPixbufs->home==NULL) defaultPixbufs->home=gdk_pixbuf_new_from_xpm_data(RFM_icon_home);
-   if (defaultPixbufs->stop==NULL) defaultPixbufs->stop=gdk_pixbuf_new_from_xpm_data(RFM_icon_stop);
-   if (defaultPixbufs->refresh==NULL) defaultPixbufs->refresh=gdk_pixbuf_new_from_xpm_data(RFM_icon_refresh);
-   if (defaultPixbufs->info==NULL) defaultPixbufs->info=gdk_pixbuf_new_from_xpm_data(RFM_icon_information);
    
    return defaultPixbufs;
 }
@@ -1868,7 +1860,6 @@ static gboolean popup_file_menu(GdkEvent *event, RFM_ctx *rfmCtx)
    /* Show built in actions */
    gtk_widget_show(fileMenu->action[0]);  /* Copy */
    gtk_widget_show(fileMenu->action[1]);  /* Move */
-   gtk_widget_show(fileMenu->separator[0]);
 
    for(i=RFM_N_BUILT_IN; i<G_N_ELEMENTS(run_actions); i++) {
       if (showMenuItem[i]>0)
@@ -1961,20 +1952,6 @@ static gboolean icon_view_button_press(GtkWidget *widget, GdkEvent *event, RFM_c
          }
       break;
       case 3:  /* Button 3 selections */
-         if (tree_path) {
-            if (! gtk_icon_view_path_is_selected(GTK_ICON_VIEW(widget), tree_path)) {
-               gtk_icon_view_unselect_all(GTK_ICON_VIEW(widget));
-               gtk_icon_view_select_path(GTK_ICON_VIEW(widget), tree_path);
-            }
-            popup_file_menu(event, rfmCtx);
-            ret_val=TRUE;
-         }
-         else {
-            gtk_icon_view_unselect_all(GTK_ICON_VIEW(widget));
-            rootMenu=g_object_get_data(G_OBJECT(window), "rfm_root_menu");
-            gtk_menu_popup_at_pointer(GTK_MENU(rootMenu->menu), event);
-            ret_val=TRUE;
-         }
       break;
       default:
          ret_val=FALSE;
@@ -2003,38 +1980,6 @@ static void add_toolbar(GtkWidget *rfm_main_box, RFM_defaultPixbufs *defaultPixb
    gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), up_button, -1);
    g_signal_connect(up_button, "clicked", G_CALLBACK(up_clicked), NULL);
 
-   buttonImage=gtk_image_new_from_pixbuf(defaultPixbufs->home);
-   home_button=gtk_tool_button_new(buttonImage,"Home");
-   gtk_tool_item_set_is_important(home_button, TRUE);
-   gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), home_button, -1);
-   g_signal_connect(home_button, "clicked", G_CALLBACK(home_clicked), NULL);
-
-   buttonImage=gtk_image_new_from_pixbuf(defaultPixbufs->stop);
-   stop_button=gtk_tool_button_new(buttonImage, "Stop");
-   gtk_tool_item_set_is_important(stop_button, TRUE);
-   gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), stop_button, -1);
-   g_signal_connect(stop_button, "clicked", G_CALLBACK(stop_clicked), rfmCtx);
-
-   buttonImage=gtk_image_new_from_pixbuf(defaultPixbufs->refresh);
-   refresh_button=gtk_tool_button_new(buttonImage, "Refresh");
-   gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), refresh_button, -1);
-   g_signal_connect(refresh_button, "clicked", G_CALLBACK(refresh_clicked), rfmCtx);
-   g_signal_connect(refresh_button, "button-press-event", G_CALLBACK(refresh_other), rfmCtx);
-
-   separatorItem=gtk_separator_tool_item_new();
-   gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), separatorItem, -1);
-   for(i=0;i<G_N_ELEMENTS(tool_buttons);i++) {
-      if (check_display(tool_buttons[i].runOpts)==1)
-         continue;
-      GdkPixbuf *buttonIcon;
-      buttonIcon=gtk_icon_theme_load_icon(icon_theme, tool_buttons[i].buttonIcon, RFM_TOOL_SIZE, 0, NULL);
-      buttonImage=gtk_image_new_from_pixbuf(buttonIcon);
-      g_object_unref(buttonIcon);
-
-      userButton=gtk_tool_button_new(buttonImage, tool_buttons[i].buttonName);
-      gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), userButton, -1);
-      g_signal_connect(userButton, "clicked", G_CALLBACK(exec_user_tool), &tool_buttons[i]);
-   }
    separatorItem=gtk_separator_tool_item_new();
    gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), separatorItem, -1);
 
